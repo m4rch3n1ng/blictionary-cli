@@ -1,0 +1,47 @@
+{
+	"compilerOptions": {
+		/* - project options - */
+		"declaration": false,
+		"isolatedModules": true,
+		"module": "esnext",
+		"outDir": "dist",
+		"removeComments": true,
+		"rootDir": "src",
+		"target": "esnext",
+		"importsNotUsedAsValues": "error",
+
+		/* - strict checks - */
+		"alwaysStrict": true,
+		"noImplicitAny": true,
+		"noImplicitThis": true,
+		"strict": true,
+		"strictBindCallApply": true,
+		"strictFunctionTypes": true,
+		"strictNullChecks": true,
+		"strictPropertyInitialization": true,
+
+		/* - linter checks - */
+		"noFallthroughCasesInSwitch": true,
+		"noImplicitReturns": true,
+		"noUncheckedIndexedAccess": true,
+		"noUnusedLocals": true,
+		"noUnusedParameters": true,
+
+		/* - module resolution - */
+		"allowSyntheticDefaultImports": true,
+		"esModuleInterop": true,
+		"moduleResolution": "node",
+
+		/* - source maps - */
+		"sourceMap": false,
+
+		/* - experimental - */
+		"emitDecoratorMetadata": true,
+		"experimentalDecorators": true,
+
+		/* - advanced - */
+		"forceConsistentCasingInFileNames": true,
+		"skipLibCheck": true
+	},
+	"include": [ "src/**/*.ts", "bin/**/*.ts" ]
+}
