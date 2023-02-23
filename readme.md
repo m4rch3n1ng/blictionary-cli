@@ -43,6 +43,15 @@ accepts one argument: the path to the txt file `<txt>`
 $ blictionary rank <txt>
 ```
 
+### search
+
+search for an entry in a directory  
+accepts one argument: the path to the directory `<dir>`
+
+```
+$ blictionary search <dir>
+```
+
 ### utils
 
 a collection of smaller commands to analyze small bits of the messages  

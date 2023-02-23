@@ -19,7 +19,7 @@ interface interCommand {
 	time: Date
 }
 
-export default async function main ( zipPath: string ) {
+export default async function analyze ( zipPath: string ) {
 	if (!existsSync(zipPath) || !/\.7z$/.test(zipPath)) return console.log("cannot find file")
 
 	const unzipPath = joinPath(dirname(zipPath), randomUUID())

@@ -4,6 +4,7 @@ import sade from "sade"
 
 import analyze from "./analyze.js"
 import rank from "./rank.js"
+import search from "./search.js"
 import { capital } from "./utils.js"
 
 sade("blictionary", false)
@@ -14,6 +15,8 @@ sade("blictionary", false)
 	.command("rank <txt>")
 	.describe("create a ranked list of words")
 	.action(rank)
+	.command("search <dir>")
+	.action(search)
 
 	.command("utils capital <txt>")
 	.describe("analyze how many messages start with capital letters")

@@ -1,6 +1,6 @@
 import { readFile, writeFile } from "node:fs/promises"
 
-export default async function main ( txt: string ) {
+export default async function rank ( txt: string ) {
 	const content = await readFile(txt)
 	const text = content.toString()
 
