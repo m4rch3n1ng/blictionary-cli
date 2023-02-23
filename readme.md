@@ -19,7 +19,7 @@ $ npm run build
 to install the project run
 
 ```
-$ npm in . -g
+$ npm install . -g
 ```
 
 ## commands
