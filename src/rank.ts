@@ -1,11 +1,6 @@
 import { readFile, writeFile } from "node:fs/promises"
-import sade from "sade"
 
-sade("rank <txt>", true)
-	.action(main)
-	.parse(process.argv)
-
-async function main ( txt: string ) {
+export default async function main ( txt: string ) {
 	const content = await readFile(txt)
 	const text = content.toString()
 

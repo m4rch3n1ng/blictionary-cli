@@ -1,13 +1,8 @@
 import $7z from "7zip-min"
-import sade from "sade"
 import { existsSync } from "node:fs"
 import { randomUUID } from "node:crypto"
 import { readdir, writeFile, readFile, rm, mkdir } from "node:fs/promises"
 import { dirname, join as joinPath } from "node:path"
-
-sade("analyze <zip>", true)
-	.action(main)
-	.parse(process.argv)
 
 interface interMessage {
 	type: "message"
@@ -24,7 +19,7 @@ interface interCommand {
 	time: Date
 }
 
-async function main ( zipPath: string ) {
+export default async function main ( zipPath: string ) {
 	if (!existsSync(zipPath) || !/\.7z$/.test(zipPath)) return console.log("cannot find file")
 
 	const unzipPath = joinPath(dirname(zipPath), randomUUID())

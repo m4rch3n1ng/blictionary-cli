@@ -1,13 +1,6 @@
 import { readFile } from "node:fs/promises"
-import sade from "sade"
 
-sade("utils")
-	.command("capital <txt>")
-	.describe("analyze how many messages start with capital letters")
-	.action(main)
-	.parse(process.argv)
-
-async function main ( txt: string ) {
+export async function capital ( txt: string ) {
 	const content = await readFile(txt)
 	const text = content.toString()
 	const lines = text.split(/\r?\n/g)
