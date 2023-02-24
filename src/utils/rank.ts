@@ -1,9 +1,4 @@
-import { readFile, writeFile } from "node:fs/promises"
-
-export default async function rank ( txt: string ) {
-	const content = await readFile(txt)
-	const text = content.toString()
-
+export function rankWords ( text: string ) {
 	const sanitized = text.replace(/\r?\n/g, " ").replace(/["“”´`#€£$%;,*+=!?^_~|{}()\[\]\/\\]/g, " ")
 		.replace(/([^<]):(\d*[^\d>])/g, "$1 $2")
 		.replace(/([^<])@/g, "$1 ")
@@ -24,8 +19,7 @@ export default async function rank ( txt: string ) {
 	const sort = _w.sort(([, pop1 ], [, pop2 ]) => pop2 - pop1)
 
 	const max = (sort[0]?.[1] || 0).toString().length
-	const _txt = sort.map(([ word, amt ]) => `${amt.toString().padStart(max, "0")} "${word}"`).join("\n")
+	const rankedTxt = sort.map(([ word, amt ]) => `${amt.toString().padStart(max, "0")} "${word}"`).join("\n")
 
-	const newFilePath = txt.slice(0, -4)
-	await writeFile(`${newFilePath}.rank.txt`, _txt)
+	return rankedTxt
 }
