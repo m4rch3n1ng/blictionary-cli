@@ -2,8 +2,8 @@
 
 import sade from "sade"
 
-import init from "./init.js"
-import { search as entrySearch } from "./entry.js"
+import init from "../dist/init.js"
+import { search as entrySearch } from "../dist/entry.js"
 
 sade("blictionary", false)
 	.describe("command suite for the blictionary project")

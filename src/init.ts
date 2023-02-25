@@ -15,12 +15,6 @@ interface cliOptions {
 }
 
 export default async function cli ( dc: string | undefined, tw: string | undefined, irc: string | undefined, out: string | undefined, { zip, d, t, i, o }: cliOptions ) {
-	// const discordPath: string | undefined = dc
-	// const twitchPath: string | undefined = tw
-	// const ircPath: string | undefined = irc
-	// const outPath: string | undefined = out
-
-	// const [ discordPath, twitchPath, ircPath, outPath = "." ] = confirm()
 	const discordPath = await validateInp(dc, d)
 	const twitchPath = await validateInp(tw, t)
 	const ircPath = await validateInp(irc, i)
