@@ -41,3 +41,12 @@ accepts one option:
 ```
 $ blictionary init <discordZip> <twitchDir> <ircTxt> [outDir]
 ```
+
+### entry search
+
+search for an entry in a directory. [learn more about entries](https://github.com/m4rch3n1ng/blictionary#entries).  
+accepts one argument: the path to the directory <dir>
+
+```
+$ blictionary entry search <dir>
+```

@@ -1,10 +1,10 @@
-import $7z from "7zip-min"
 import { existsSync } from "node:fs"
 import { mkdir, writeFile } from "node:fs/promises"
 import { join as joinPath } from "node:path"
 import { extractDiscord, extractIrc, extractTwitch } from "./utils/collect.js"
 import { rankWords } from "./utils/rank.js"
 import { getStats } from "./utils/stats.js"
+import { $7z } from "./_utils.js"
 
 export default async function analyze ( discordZip: string, twitchDir: string, ircTxt: string, outDir: string = ".", { zip }: { zip: boolean }) {
 	if (!existsSync(discordZip) || !/\.7z$/.test(discordZip)) throw `cannot find file ${discordZip}`
@@ -29,13 +29,9 @@ export default async function analyze ( discordZip: string, twitchDir: string, i
 	await writeFile(joinPath(outPath, "stats.json"), JSON.stringify(stats, null, "\t") + "\n")
 
 	if (zip) {
-		await new Promise<void>(( resolve, reject ) => (
-			$7z.cmd([
-				"a", "-t7z", "-m0=lzma2", "-mmt=on", "-md1024m", "-mfb273", "-mx=9", "-ms=on", "-aoa",
-				"--",
-				`${outPath}.7z`,
-				outPath
-			], ( error ) => error ? reject(error) : resolve())
-		))
+		await $7z(`${outPath}.7z`, outPath)
 	}
+
+	console.log("created", outPath)
+	if (zip) console.log("zipped into", `${outPath}.7z`)
 }
