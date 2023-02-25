@@ -29,18 +29,34 @@ $ npm install . -g
 the main function, collects the messages from all the sources, sorts them chronologically and puts them together
 created files are the basis for most other commands
 
-accepts four argument:
-1. path to the discord message 7z file `<discordZip>`
-1. path to directory with twitch logs `<twitchDir>`
-1. path to txt file of irc logs `<ircTxt>` 
-1. *optional* path to the outdir
+accepts three input arguments and one output:
+1. *[input]* path to the directory of discord channel entries `discordPath`
+1. *[input]* path to the directory of twitch logs `twitchPath`
+1. *[input]* path to the txt file of irc logs `ircPath`
+1. *[output]* path to the output directory `outDir`
 
-accepts one option:
-1. `-z, --zip` zip output directory
+all inputs can either be given directly or in the zip format of either `.7z` or `.zip`
+(***note**: you have to zip the directories of the entries instead of the entries directly*)  
+*you have to give at least one `input`. the `output` is optional*
+
+these can either be given sequentially in the format
 
 ```
-$ blictionary init <discordZip> <twitchDir> <ircTxt> [outDir]
+$ blictionary init [discord] [twitch] [ircTxt] [outDir]
 ```
+
+or as options
+1. `-d, --discord`, `discordPath`
+1. `-t, --twitch`, `twitchPath`
+1. `-i, --irc`, `ircPath`
+1. `-o, --outDir`, `outDir`
+
+```
+$ blictionary init -d [discord] -t [twitch] -i [ircTxt] -o [outDir]
+```
+
+accepts one extra option:
+1. `-z, --zip` zip the output directory
 
 ### entry search
 

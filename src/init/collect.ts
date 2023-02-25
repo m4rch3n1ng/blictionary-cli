@@ -1,7 +1,9 @@
-import $7z from "7zip-min"
-import { randomUUID } from "node:crypto"
-import { readdir, readFile, rm, mkdir } from "node:fs/promises"
-import { dirname, join as joinPath } from "node:path"
+// import $7z from "7zip-min"
+// import { randomUUID } from "node:crypto"
+// import { readdir, readFile, rm, mkdir } from "node:fs/promises"
+import { readdir, readFile } from "node:fs/promises"
+// import { dirname, join as joinPath } from "node:path"
+import { join as joinPath } from "node:path"
 
 interface discordMsg {
 	type: "discord"
@@ -27,7 +29,9 @@ interface ircMsg {
 	text: string
 }
 
-export async function extractTwitch ( twitchDir: string ): Promise<twitchMsg[]> {
+export async function extractTwitch ( twitchDir: string | null ): Promise<twitchMsg[]> {
+	if (twitchDir === null) return []
+
 	const vodPaths = (await readdir(twitchDir)).filter(( path ) => /.txt$/.test(path))
 
 	const allVods: twitchMsg[][] = await Promise.all(vodPaths.map(async ( vodFile ) => {
@@ -51,7 +55,9 @@ export async function extractTwitch ( twitchDir: string ): Promise<twitchMsg[]> 
 }
 
 
-export async function extractIrc ( ircTxt: string ): Promise<ircMsg[]> {
+export async function extractIrc ( ircTxt: string | null ): Promise<ircMsg[]> {
+	if (ircTxt === null) return []
+
 	const ircContent = await readFile(ircTxt)
 	const irc = ircContent.toString()
 
@@ -113,17 +119,22 @@ interface interCommand {
 	time: Date
 }
 
-export async function extractDiscord ( discordZip: string ): Promise<discordMsg[]> {
-	const unzipPath = joinPath(dirname(discordZip), randomUUID())
-	await mkdir(unzipPath)
-	await new Promise<void>(( resolve ) => {
-		$7z.unpack(discordZip, unzipPath, () => resolve())
-	})
+export async function extractDiscord ( discordZip: string | null ): Promise<discordMsg[]> {
+	if (discordZip === null) return []
 
-	const readableDir = (await readdir(unzipPath))[0]
-	if (!readableDir) throw "something went wrong"
+	// const unzipPath = joinPath(dirname(discordZip), randomUUID())
+	// await mkdir(unzipPath)
+	// await new Promise<void>(( resolve ) => {
+	// 	$7z.unpack(discordZip, unzipPath, () => resolve())
+	// })
 
-	const readPath = joinPath(unzipPath, readableDir)
+	// const readableDir = (await readdir(unzipPath))[0]
+	// if (!readableDir) throw "something went wrong"
+
+	// const readPath = joinPath(unzipPath, readableDir)
+	// const allDiscordJson = await readdir(readPath)
+
+	const readPath = discordZip
 	const allDiscordJson = await readdir(readPath)
 
 	const allMessages: discordMsg[][] = await Promise.all(allDiscordJson.map(async ( jsonFile ) => {
@@ -159,6 +170,6 @@ export async function extractDiscord ( discordZip: string ): Promise<discordMsg[
 		return messages
 	}))
 
-	await rm(unzipPath, { recursive: true })
+	// await rm(unzipPath, { recursive: true })
 	return allMessages.flat(1)
 }

@@ -62,13 +62,20 @@ export function wordClassToString ( wordClass: string | string[] ): string {
 	return string
 }
 
-export function $7z ( zipPath: string, dirPath: string ) {
-	return new Promise<void>(( resolve, reject ) => (
-		$$7z.cmd([
-			"a", "-t7z", "-m0=lzma2", "-mmt=on", "-md1024m", "-mfb273", "-mx=9", "-ms=on", "-aoa",
-			"--",
-			zipPath,
-			dirPath
-		], ( error ) => error ? reject(error) : resolve())
-	))
+export const $7z = {
+	zip ( zipPath: string, dirPath: string ) {
+		return new Promise<void>(( resolve, reject ) => (
+			$$7z.cmd([
+				"a", "-t7z", "-m0=lzma2", "-mmt=on", "-md1024m", "-mfb273", "-mx=9", "-ms=on", "-aoa",
+				"--",
+				zipPath,
+				dirPath
+			], ( error ) => error ? reject(error) : resolve())
+		))
+	},
+	unzip ( zipPath: string, unzipPath: string ) {
+		return new Promise<void>(( resolve ) => {
+			$$7z.unpack(zipPath, unzipPath, () => resolve())
+		})
+	}
 }
