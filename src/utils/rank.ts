@@ -1,5 +1,5 @@
-export function rankWords ( text: string ) {
-	const sanitized = text.replace(/\r?\n/g, " ").replace(/["“”´`#€£$%;,*+=!?^_~|{}()\[\]\/\\]/g, " ")
+export function rankWords ( messagesTxt: string ) {
+	const sanitized = messagesTxt.replace(/\r?\n/g, " ").replace(/["“”´`#€£$%;,*+=!?^_~|{}()\[\]\/\\]/g, " ")
 		.replace(/([^<]):(\d*[^\d>])/g, "$1 $2")
 		.replace(/([^<])@/g, "$1 ")
 		.replace(/([^@])&/g, "$1 ")
