@@ -4,6 +4,14 @@
 
 you need to have [node.js v16 or above](https://nodejs.org/en/) and [npm v8 or above](https://www.npmjs.com/package/npm)
 
+```
+$ npm install https://github.com/m4rch3n1ng/blictionary-cli/tarball/main -g
+```
+
+## build
+
+you need to have [node.js v16 or above](https://nodejs.org/en/) and [npm v8 or above](https://www.npmjs.com/package/npm)
+
 to initialize the project download it and run
 
 ```
@@ -16,7 +24,7 @@ to build/transpile the project run
 $ npm run build
 ```
 
-to install the project run
+to install it from the local build run
 
 ```
 $ npm install . -g
