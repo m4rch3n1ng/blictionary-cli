@@ -32,7 +32,7 @@ async function analyze ( discordZip: string | null, twitchDir: string | null, ir
 
 	const messagesTxt = sortedMessages.map(( message ) => ` ${message.text.replace(/\r?\n/g, " ")} `.replace(/  +/g, " ")).join("\n")
 	const wordsRank = rankWords(messagesTxt)
-	const stats = getStats(messagesTxt)
+	const stats = getStats(sortedMessages, messagesTxt)
 
 	const outName = `init.${new Date().toISOString().replace(/:/g, "-")}`
 	const outPath = joinPath(outDir, outName)

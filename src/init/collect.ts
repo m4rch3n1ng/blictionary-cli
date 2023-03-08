@@ -25,6 +25,9 @@ interface ircMsg {
 	text: string
 }
 
+export type message = discordMsg | twitchMsg | ircMsg
+
+
 export async function extractTwitch ( twitchDir: string | null ): Promise<twitchMsg[]> {
 	if (twitchDir === null) return []
 
@@ -49,7 +52,6 @@ export async function extractTwitch ( twitchDir: string | null ): Promise<twitch
 
 	return allVods.flat(1)
 }
-
 
 export async function extractIrc ( ircTxt: string | null ): Promise<ircMsg[]> {
 	if (ircTxt === null) return []

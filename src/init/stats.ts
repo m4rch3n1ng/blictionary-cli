@@ -1,7 +1,18 @@
-export function getStats ( messagesTxt: string ) {
+import type { message } from "./collect.js"
+
+export function getStats ( messagesJson: message[], messagesTxt: string ) {
 	return {
+		total: messagesJson.length,
+		halfway: halfway(messagesJson),
 		capital: capital(messagesTxt)
 	}
+}
+
+function halfway ( messagesJson: message[] ) {
+	const total = messagesJson.length
+	const halfIndex = Math.floor(total / 2)
+	const halfway = messagesJson[halfIndex]!
+	return halfway.date
 }
 
 function capital ( messagesTxt: string ) {
@@ -21,6 +32,7 @@ function capital ( messagesTxt: string ) {
 	}
 
 	return {
+		"%": `${(uppercase / lowercase * 100).toFixed(2)}%`,
 		uppercase,
 		lowercase
 	}
