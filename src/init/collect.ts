@@ -1,8 +1,4 @@
-// import $7z from "7zip-min"
-// import { randomUUID } from "node:crypto"
-// import { readdir, readFile, rm, mkdir } from "node:fs/promises"
 import { readdir, readFile } from "node:fs/promises"
-// import { dirname, join as joinPath } from "node:path"
 import { join as joinPath } from "node:path"
 
 interface discordMsg {
@@ -83,13 +79,6 @@ export async function extractIrc ( ircTxt: string | null ): Promise<ircMsg[]> {
 	return messages
 }
 
-
-// function toScuffedDate ( date: string ) {
-// 	// return Number(new Date(date + " 1970 UTC"))
-// 	return new Date(date)
-// }
-
-
 interface discordThing {
 	name: string
 	messages: (interCommand | interMessage)[]
@@ -121,18 +110,6 @@ interface interCommand {
 
 export async function extractDiscord ( discordZip: string | null ): Promise<discordMsg[]> {
 	if (discordZip === null) return []
-
-	// const unzipPath = joinPath(dirname(discordZip), randomUUID())
-	// await mkdir(unzipPath)
-	// await new Promise<void>(( resolve ) => {
-	// 	$7z.unpack(discordZip, unzipPath, () => resolve())
-	// })
-
-	// const readableDir = (await readdir(unzipPath))[0]
-	// if (!readableDir) throw "something went wrong"
-
-	// const readPath = joinPath(unzipPath, readableDir)
-	// const allDiscordJson = await readdir(readPath)
 
 	const readPath = discordZip
 	const allDiscordJson = await readdir(readPath)
@@ -170,6 +147,5 @@ export async function extractDiscord ( discordZip: string | null ): Promise<disc
 		return messages
 	}))
 
-	// await rm(unzipPath, { recursive: true })
 	return allMessages.flat(1)
 }
