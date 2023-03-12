@@ -27,10 +27,14 @@ interface ircMsg {
 
 export type message = discordMsg | twitchMsg | ircMsg
 
-
-export async function extractTwitch ( twitchDir: string | null ): Promise<twitchMsg[]> {
+export async function extractTwitch ( twitchDir: string[] | null ): Promise<twitchMsg[]> {
 	if (twitchDir === null) return []
 
+	const allVods = await Promise.all(twitchDir.map(( path ) => extractSingleTwitch(path)))
+	return allVods.flat()
+}
+
+async function extractSingleTwitch ( twitchDir: string ): Promise<twitchMsg[]> {
 	const vodPaths = (await readdir(twitchDir)).filter(( path ) => /.txt$/.test(path))
 
 	const allVods: twitchMsg[][] = await Promise.all(vodPaths.map(async ( vodFile ) => {
@@ -53,9 +57,14 @@ export async function extractTwitch ( twitchDir: string | null ): Promise<twitch
 	return allVods.flat(1)
 }
 
-export async function extractIrc ( ircTxt: string | null ): Promise<ircMsg[]> {
+export async function extractIrc ( ircTxt: string[] | null ): Promise<ircMsg[]> {
 	if (ircTxt === null) return []
 
+	const allIrc = await Promise.all(ircTxt.map(( path ) => extractSingleIrc(path)))
+	return allIrc.flat()
+}
+
+async function extractSingleIrc ( ircTxt: string ): Promise<ircMsg[]> {
 	const ircContent = await readFile(ircTxt)
 	const irc = ircContent.toString()
 
@@ -110,9 +119,14 @@ interface interCommand {
 	time: Date
 }
 
-export async function extractDiscord ( discordZip: string | null ): Promise<discordMsg[]> {
+export async function extractDiscord ( discordZip: string[] | null ): Promise<discordMsg[]> {
 	if (discordZip === null) return []
 
+	const allMessages = await Promise.all(discordZip.map(( path ) => extractSingleDiscord(path)))
+	return allMessages.flat()
+}
+
+async function extractSingleDiscord ( discordZip: string ) {
 	const readPath = discordZip
 	const allDiscordJson = await readdir(readPath)
 

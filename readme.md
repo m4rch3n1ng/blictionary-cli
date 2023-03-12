@@ -63,6 +63,12 @@ or as options
 $ blictionary init -d [discord] -t [twitch] -i [ircTxt] -o [outDir]
 ```
 
+you can also specify multiple inputs of the same type by using the same flag twice
+
+```
+$ blictionary init -d [discord1] -d [discord2]
+```
+
 accepts one extra option:
 1. `-z, --zip` zip the output directory
 

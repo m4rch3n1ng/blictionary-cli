@@ -9,21 +9,46 @@ export function cleanupZip () {
 	return Promise.all(toClean.map(( ex ) => ex()))
 }
 
-const isZip = /\.(zip|7z)$/
-export async function validateInp ( i: string | undefined, i2: string | undefined | boolean, zip: boolean = true ): Promise<string | null> {
+export async function validatePath ( i: string | undefined, i2: string | undefined | boolean ): Promise<string> {
 	const path = typeof i === "string" ? i : ( typeof i2 === "string" ? i2 : null )
-	if (!path) return null
+
+	if (!path) return "."
 
 	if (!existsSync(path)) {
-		await cleanupZip()
-		throw new Error(`path ${path} does not exist`)
+		await mkdir(path, { recursive: true })
 	}
 
-	if (zip && isZip.test(path)) {
-		return doUnzip(path)
-	} else {
-		return path
+	return path
+}
+
+function collapseInp ( i: string | undefined, i2: string | string[] | undefined | boolean ): null | string[] {
+	const all = [ i, ...( Array.isArray(i2) ? i2 : [ i2 ])]
+	const filter = all.filter(( el ) => typeof el === "string") as string[]
+
+	return filter.length ? filter : null
+}
+
+const isZip = /\.(zip|7z)$/
+export async function validateInp ( i: string | undefined, i2: string | string[] | undefined | boolean ): Promise<string[] | null> {
+	const paths = collapseInp(i, i2)
+	if (!paths) return null
+
+	for (let path of paths) {
+		if (!existsSync(path)) {
+			await cleanupZip()
+			throw new Error(`path ${path} does not exist`)
+		}
 	}
+
+	return Promise.all(
+		paths.map(( path ) => isZip.test(path) ? doUnzip(path) : path)
+	)
+
+	// if (canZip && isZip.test(path)) {
+	// 	return doUnzip(path)
+	// } else {
+	// 	return paths
+	// }
 }
 
 async function doUnzip ( path: string ): Promise<string> {

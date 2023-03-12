@@ -3,15 +3,15 @@ import { join as joinPath } from "node:path"
 import { extractDiscord, extractIrc, extractTwitch } from "./init/collect.js"
 import { rankWords } from "./init/rank.js"
 import { getStats } from "./init/stats.js"
-import { cleanupZip, validateInp } from "./init/_validate.js"
+import { cleanupZip, validateInp, validatePath } from "./init/_validate.js"
 import { $7z } from "./_utils.js"
 
 interface cliOptions {
 	zip: boolean
 	u: boolean
-	d?: string | boolean
-	t?: string | boolean
-	i?: string | boolean
+	d?: string | string[] | boolean
+	t?: string | string[] | boolean
+	i?: string | string[] | boolean
 	o?: string | boolean
 }
 
@@ -19,14 +19,14 @@ export default async function cli ( dc: string | undefined, tw: string | undefin
 	const discordPath = await validateInp(dc, d)
 	const twitchPath = await validateInp(tw, t)
 	const ircPath = await validateInp(irc, i)
-	const outPath = await validateInp(out, o, false) || "."
+	const outPath = await validatePath(out, o)
 	if (!discordPath && !twitchPath && !ircPath) throw new Error("no input given")
 
 	await analyze(discordPath, twitchPath, ircPath, outPath, zip, u)
 	await cleanupZip()
 }
 
-async function analyze ( discordZip: string | null, twitchDir: string | null, ircTxt: string | null, outDir: string, zip: boolean, ugly: boolean ) {
+async function analyze ( discordZip: string[] | null, twitchDir: string[] | null, ircTxt: string[] | null, outDir: string, zip: boolean, ugly: boolean ) {
 	const [ discord, twitch, irc ] = await Promise.all([ extractDiscord(discordZip), extractTwitch(twitchDir), extractIrc(ircTxt) ])
 	const sortedMessages = [ discord, twitch, irc ].flat().sort(( msg1, msg2 ) => +new Date(msg1.date) - +new Date(msg2.date))
 
