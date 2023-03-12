@@ -94,3 +94,7 @@ export const $7z = {
 		return spawn(path7za, [ "x", zipPath, `-o${unzipPath}` ])
 	}
 }
+
+export function escapeRegex ( w: string ) {
+	return w.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
+}
