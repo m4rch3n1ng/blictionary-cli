@@ -79,3 +79,7 @@ export const $7z = {
 		})
 	}
 }
+
+export function escapeRegex ( w: string ) {
+	return w.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
+}
