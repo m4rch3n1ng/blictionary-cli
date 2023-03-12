@@ -3,6 +3,7 @@
 import sade from "sade"
 
 import init from "../dist/init.js"
+import corpus from "../dist/corpus.js"
 import { search as entrySearch } from "../dist/entry.js"
 
 sade("blictionary", false)
@@ -16,6 +17,8 @@ sade("blictionary", false)
 	.option("-z, --zip", "zip the output directory")
 	.option("-u, --ugly", "uglify message.json to make compress it")
 	.action(init)
+	.command("corpus [init]")
+	.action(corpus)
 	.command("entry search <dir>")
 	.action(entrySearch)
 	.parse(process.argv)
