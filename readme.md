@@ -44,8 +44,8 @@ accepts three input arguments and one output:
 1. *[output]* path to the output directory `outDir`
 
 all inputs can either be given directly or in the zip format of either `.7z` or `.zip`
-(***note**: you have to zip the directories of the entries instead of the entries directly*)  
-*you have to give at least one `input`. the `output` is optional*
+(***note**: if you zip a directory, you have to zip the directory directly instead of the entries (i.e. there can only be one file/dir at the highest level of the zip)*)  
+*you have to give at least one `input`. the `output` is optional and defaults to `"."`*
 
 these can either be given sequentially in the format
 
