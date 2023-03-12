@@ -67,8 +67,13 @@ export async function extractIrc ( ircTxt: string[] | null ): Promise<ircMsg[]> 
 async function extractSingleIrc ( ircTxt: string ): Promise<ircMsg[]> {
 	const ircContent = await readFile(ircTxt)
 	const irc = ircContent.toString()
-
 	const lines = irc.split(/\r?\n/g)
+
+	const isOld = lines.some(( line ) => /^\*\*\*\* BEGIN LOGGING/.test(line))
+	return isOld ? parseOldIrc(lines) : parseNewIrc(lines)
+}
+
+function parseOldIrc ( lines: string[] ): ircMsg[] {
 	const messages: ircMsg[] = []
 	let currYear = "2021"
 	for (const line of lines) {
@@ -84,6 +89,23 @@ async function extractSingleIrc ( ircTxt: string ): Promise<ircMsg[]> {
 				text
 			})
 		// todo /me
+		}
+	}
+
+	return messages
+}
+
+function parseNewIrc ( lines: string[] ): ircMsg[] {
+	const messages: ircMsg[] = []
+	for (const line of lines) {
+		if (/^\[.{24}\] <.+?> .+$/.test(line)) {
+			const [ , date, author, text ] = [ .../^\[(.{24})\] <(.+?)> (.+)$/.exec(line)! ] as [ string, string, string, string ]
+			messages.push({
+				type: "irc",
+				date: new Date(date),
+				author,
+				text
+			})
 		}
 	}
 
