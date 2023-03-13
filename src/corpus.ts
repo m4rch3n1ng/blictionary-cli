@@ -94,21 +94,21 @@ async function initStuff ( rankedWords: string[], textLines: string[] ) {
 
 // todo name
 abstract class Num {
-	index: number = 0
-	isNum: boolean = false
+	protected index: number = 0
+	protected isNum: boolean = false
 
-	abstract readonly allItems: string[]
-	abstract items: string[]
-	abstract len: number
+	protected abstract readonly allItems: string[]
+	protected abstract items: string[]
+	protected abstract len: number
 
-	protected readonly ambientHeight = 4
-	protected readonly elementHeight = 5
-	protected readonly fullHeight = this.ambientHeight + this.elementHeight
-	protected readonly width = 10
+	private readonly ambientHeight = 4
+	private readonly elementHeight = 5
+	private readonly fullHeight = this.ambientHeight + this.elementHeight
+	private readonly width = 10
 
 	abstract init ( ...args: any[] ): MODE
 
-	add ( toAdd: number ): void {
+	protected add ( toAdd: number ): void {
 		if (this.index >= this.len) return
 
 		if (this.index + toAdd >= this.len - 1) {
@@ -119,7 +119,7 @@ abstract class Num {
 		this.index += toAdd
 	}
 
-	sub ( toSub: number ): void {
+	protected sub ( toSub: number ): void {
 		if (this.index <= 0) return
 
 		if (this.index - toSub <= 0) {
@@ -132,14 +132,14 @@ abstract class Num {
 
 	abstract data ( data: string, c: any[] ): void | MODE
 
-	protected inputNumber: string = ""
-	num ( init: string ) {
+	private inputNumber: string = ""
+	protected num ( init: string ) {
 		this.inputNumber = init
 		this.isNum = true
 		this.drawNum()
 	}
 
-	numData ( data: string ) {
+	protected numData ( data: string ) {
 		switch (data) {
 			case STDIN.ESC: {
 				this.isNum = false
@@ -182,7 +182,7 @@ abstract class Num {
 		}
 	}
 
-	protected redraw () {
+	private redraw () {
 		stdout.cursorTo(0)
 		for (let i = 0; i < this.fullHeight - 1; i++) {
 			stdout.write(`${" ".repeat(stdout.columns)}\n`)
@@ -220,7 +220,7 @@ abstract class Num {
 		stdout.write(this.formatMode)
 	}
 
-	drawNum (): void {
+	private drawNum (): void {
 		stdout.write(STDOUT.SHOWCURSOR)
 		this.redraw()
 
@@ -248,9 +248,9 @@ abstract class Num {
 
 
 class Std extends Num {
-	len: number
-	readonly allItems: string[]
-	items: string[]
+	protected readonly allItems: string[]
+	protected items: string[]
+	protected len: number
 
 	constructor ( rankedWords: string[] ) {
 		super()
@@ -319,10 +319,10 @@ class Std extends Num {
 }
 
 class Conc extends Num {
-	len: number
+	protected readonly allItems: string[]
+	protected items: string[]
+	protected len: number
 	private stdIndex: number = 0
-	readonly allItems: string[]
-	items: string[]
 
 	constructor ( textLines: string[] ) {
 		super()
