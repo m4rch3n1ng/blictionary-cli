@@ -16,7 +16,7 @@ export default async function corpus ( initDir: string ) {
 	stdin.destroy()
 }
 
-enum STDIN {
+const enum STDIN {
 	UP = "%1B%5BA",
 	DOWN = "%1B%5BB",
 	RIGHT = "%1B%5BC",
@@ -27,12 +27,20 @@ enum STDIN {
 	ENTER = "%0D",
 }
 
-enum STDOUT {
+const enum STDOUT {
 	HIDECURSOR = "\x1b[?25l",
-	SHOWCURSOR = "\x1b[?25h"
+	SHOWCURSOR = "\x1b[?25h",
+
+	RESET = "\x1b[0m",
+
+	TEAL = "\x1b[36m",
+	MAGENTA = "\x1b[35m",
+	YELLOW = "\x1b[33m",
+
+	ITALIC = "\x1b[3m",
 }
 
-enum MODE {
+const enum MODE {
 	STD = "STD",
 	CONC = "CONC",
 	WORD = "WORD",
@@ -58,7 +66,7 @@ async function initStuff ( rankedWords: string[], textLines: string[] ) {
 
 	stdin.setRawMode(true)
 	return new Promise(( _resolve ) => {
-		std.draw()
+		std.draw(true)
 		stdin.on("data", ( rawData ) => {
 			const encodedData = encodeURIComponent(rawData.toString())
 
@@ -93,7 +101,9 @@ abstract class Num {
 	abstract items: string[]
 	abstract len: number
 
-	protected readonly height = 8
+	protected readonly ambientHeight = 4
+	protected readonly elementHeight = 5
+	protected readonly fullHeight = this.ambientHeight + this.elementHeight
 	protected readonly width = 10
 
 	abstract init ( ...args: any[] ): MODE
@@ -174,10 +184,11 @@ abstract class Num {
 
 	protected redraw () {
 		stdout.cursorTo(0)
-		for (let i = 0; i < this.height; i++) {
+		for (let i = 0; i < this.fullHeight - 1; i++) {
 			stdout.write(`${" ".repeat(stdout.columns)}\n`)
 		}
-		stdout.moveCursor(0, -this.height)
+		stdout.moveCursor(0, -this.fullHeight)
+		stdout.write(`${" ".repeat(stdout.columns)}\n`)
 	}
 
 	protected makeInputNumber (): number | null {
@@ -190,12 +201,49 @@ abstract class Num {
 		}
 	}
 
+	draw ( initial = false ): void {
+		stdout.write(STDOUT.HIDECURSOR)
+		if (initial) stdout.write(this.formatMode)
 
-	abstract draw (): void
-	abstract drawNum (): void
+		this.redraw()
 
-	protected abstract format ( str: string ): string
-	protected abstract formatTop ( ...args: (string | number)[] ): string
+		stdout.write(`${this.formatIndex(this.index)}\n`)
+		stdout.write(`${this.formatLine(this.items[this.index])}\n`)
+		stdout.write(`${"-".repeat(this.width)}\n`)
+
+		const maxHeight = this.elementHeight
+		for (let movingIndex = this.index + 1; movingIndex <= this.index + maxHeight; movingIndex++) {
+			stdout.write(`${this.formatLine(this.items[movingIndex])}\n`)
+		}
+
+		stdout.moveCursor(0, -this.fullHeight)
+		stdout.write(this.formatMode)
+	}
+
+	drawNum (): void {
+		stdout.write(STDOUT.SHOWCURSOR)
+		this.redraw()
+
+		const tmpIndex = this.makeInputNumber()
+		const index = tmpIndex ?? this.index
+
+		stdout.write(`\n`)
+		stdout.write(`${this.formatLine(this.items[index])}\n`)
+		stdout.write(`${"-".repeat(this.width)}\n`)
+
+		const maxHeight = this.elementHeight
+		for (let movingIndex = index + 1; movingIndex <= index + maxHeight; movingIndex++) {
+			stdout.write(`${this.formatLine(this.items[movingIndex] || "")}\n`)
+		}
+
+		stdout.moveCursor(0, -(this.ambientHeight + this.elementHeight))
+		stdout.write(this.formatMode)
+		stdout.write(this.formatIndex(this.inputNumber))
+	}
+
+	protected abstract formatLine ( str: string | undefined ): string
+	protected abstract formatIndex ( index: string | number ): string
+	protected abstract formatMode: string
 }
 
 
@@ -214,42 +262,6 @@ class Std extends Num {
 	init () {
 		this.draw()
 		return MODE.STD
-	}
-
-	draw () {
-		stdout.write(STDOUT.HIDECURSOR)
-		this.redraw()
-
-		stdout.write(`${this.formatTop(this.index)}\n`)
-		stdout.write(`${this.format(this.items[this.index])}\n`)
-		stdout.write(`${"-".repeat(this.width)}\n`)
-
-		const maxHeight = this.height - 2
-		for (let movingIndex = this.index + 1; movingIndex < this.index + maxHeight; movingIndex++) {
-			stdout.write(`${this.format(this.items[movingIndex])}\n`)
-		}
-
-		stdout.moveCursor(0, -this.height)
-	}
-
-	drawNum (): void {
-		stdout.write(STDOUT.SHOWCURSOR)
-		this.redraw()
-
-		const tmpIndex = this.makeInputNumber()
-		const index = tmpIndex ?? this.index
-
-		stdout.write(`\n`)
-		stdout.write(`${this.format(this.items[index])}\n`)
-		stdout.write(`${"-".repeat(this.width)}\n`)
-
-		const maxHeight = this.height - 2
-		for (let movingIndex = index + 1; movingIndex < index + maxHeight; movingIndex++) {
-			stdout.write(`${this.format(this.items[movingIndex] || "")}\n`)
-		}
-
-		stdout.moveCursor(0, -this.height)
-		stdout.write(this.formatTop(this.inputNumber))
 	}
 
 	data ( data: string, [ conc ]: [ Conc ]): void | MODE {
@@ -295,13 +307,15 @@ class Std extends Num {
 		return word
 	}
 
-	protected format ( str: string | undefined ) {
+	protected formatLine ( str: string | undefined ) {
 		return str || ""
 	}
 
-	protected formatTop ( w: string | number ): string {
-		return `w ${w}`
+	protected formatIndex ( w: string | number ): string {
+		return `${STDOUT.ITALIC}w${STDOUT.RESET} ${w}`
 	}
+
+	protected formatMode = `${STDOUT.TEAL}-- words --${STDOUT.RESET}\n`
 }
 
 class Conc extends Num {
@@ -324,42 +338,6 @@ class Conc extends Num {
 		this.index = 0
 		this.draw()
 		return MODE.CONC
-	}
-
-	draw (): void {
-		stdout.write(STDOUT.HIDECURSOR)
-		this.redraw()
-
-		stdout.write(`${this.formatTop(this.stdIndex, this.index)}\n`)
-		stdout.write(`${this.format(this.items[this.index])}\n`)
-		stdout.write(`${"-".repeat(this.width)}\n`)
-
-		const maxHeight = this.height - 2
-		for (let movingIndex = this.index + 1; movingIndex < this.index + maxHeight; movingIndex++) {
-			stdout.write(`${this.format(this.items[movingIndex])}\n`)
-		}
-
-		stdout.moveCursor(0, -this.height)
-	}
-
-	drawNum (): void {
-		stdout.write(STDOUT.SHOWCURSOR)
-		this.redraw()
-
-		const tmpIndex = this.makeInputNumber()
-		const index = tmpIndex ?? this.index
-
-		stdout.write(`\n`)
-		stdout.write(`${this.format(this.items[index]!)}\n`)
-		stdout.write(`${"-".repeat(this.width)}\n`)
-
-		const maxHeight = this.height - 2
-		for (let movingIndex = index + 1; movingIndex < index + maxHeight; movingIndex++) {
-			stdout.write(`${this.format(this.items[movingIndex] || "")}\n`)
-		}
-
-		stdout.moveCursor(0, -this.height)
-		stdout.write(this.formatTop(this.stdIndex, this.inputNumber))
 	}
 
 	data ( data: string, [ std ]: [ Std ]): void | MODE {
@@ -406,11 +384,13 @@ class Conc extends Num {
 		this.len = filtered.length
 	}
 
-	protected format ( str: string | undefined ) {
+	protected formatLine ( str: string | undefined ) {
 		return str ? str.slice(0, stdout.columns) : ""
 	}
 
-	protected formatTop( w: string | number, c: string | number ): string {
-		return `w ${w} c ${c}`
+	protected formatIndex ( c: string | number ): string {
+		return `${STDOUT.ITALIC}w${STDOUT.RESET} ${this.stdIndex} ${STDOUT.ITALIC}c${STDOUT.RESET} ${c}`
 	}
+
+	protected formatMode = `${STDOUT.MAGENTA}-- concordances --${STDOUT.RESET}\n`
 }
