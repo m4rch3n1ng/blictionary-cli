@@ -58,7 +58,7 @@ export function wordClassToString ( wordClass: string | string[] ): string {
 		if (i < wordClass.length - 1 && wordClass.length >= 3) {
 			string += ", "
 		}
-		
+
 		if (i == wordClass.length - 2) {
 			string += wordClass.length === 2 ? " and " : "and "
 		}

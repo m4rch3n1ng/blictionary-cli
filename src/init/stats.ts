@@ -4,6 +4,7 @@ export function getStats ( messagesJson: message[], messagesTxt: string ) {
 	return {
 		total: messagesJson.length,
 		halfway: halfway(messagesJson),
+		milestones: milestones(messagesJson),
 		capital: capital(messagesTxt)
 	}
 }
@@ -13,6 +14,20 @@ function halfway ( messagesJson: message[] ) {
 	const halfIndex = Math.floor(total / 2)
 	const halfway = messagesJson[halfIndex]!
 	return halfway.date
+}
+
+function milestones ( messagesJson: message[] ) {
+	const min = 1000
+	const max = messagesJson.length
+	const all = []
+
+	let curr = min
+	while (curr <= max) {
+		all.push(curr)
+		curr *= 10
+	}
+
+	return Object.fromEntries(all.map(( i ) => [ i.toLocaleString("en-US").replace(/,/g, "_"), messagesJson[i - 1]!.date ]))
 }
 
 function capital ( messagesTxt: string ) {
