@@ -5,11 +5,16 @@ import { fetchAllMeta, searchWord, wordClassToString } from "./_utils.js"
 function handleSigInt ( data: string ) {
 	if (encodeURIComponent(data) == "%03") {
 		stdout.write("\n")
-		stdout.write("\x1B[?25h")
 		stdout.clearScreenDown()
 
 		process.exit()
 	}
+}
+
+const enum STDIN {
+	ENTER = "%0D",
+	BACKSPACE = "%08",
+	CTRL_BACKSPACE = "%17"
 }
 
 const amt = 10
@@ -28,7 +33,7 @@ export async function search ( dir: string ) {
 		function line ( data: string ) {
 			const key = encodeURIComponent(data)
 			switch (key) {
-				case "%08": {
+				case STDIN.BACKSPACE: {
 					if (str.length) {
 						stdout.moveCursor(-1, 0)
 						stdout.write(" ")
@@ -40,7 +45,7 @@ export async function search ( dir: string ) {
 					draw()
 					break
 				}
-				case "%17": {
+				case STDIN.CTRL_BACKSPACE: {
 					if (str.length) {
 						let back = 0
 						if (!str.endsWith(" ")) {
@@ -59,13 +64,11 @@ export async function search ( dir: string ) {
 					draw()
 					break
 				}
-				case "%0D": {
+				case STDIN.ENTER: {
 					stdout.cursorTo(0)
-					for (let i = 0; i < amt + 1; i++) {
-						stdout.write(" ".repeat(stdout.columns))
-						stdout.cursorTo(0)
-					}
+					stdout.write(" ".repeat(stdout.columns))
 
+					stdout.clearScreenDown()
 					resolve()
 					process.exit()
 				}
@@ -84,6 +87,7 @@ export async function search ( dir: string ) {
 		function draw () {
 			stdout.moveCursor(0, 1)
 			stdout.cursorTo(0)
+
 			const searched = searchWord(str, allMeta)
 			for (let i = 0; i < amt; i ++) {
 				if (searched[i]) {

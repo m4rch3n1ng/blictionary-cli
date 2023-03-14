@@ -1,5 +1,5 @@
 import $$7z from "7zip-min"
-import { filter as fuzzyFilter, sort as fuzzySort } from "fuzzyjs"
+import uFuzzy from "@leeoniya/ufuzzy"
 import { readdir, readFile } from "node:fs/promises"
 import { join as joinPath } from "node:path"
 
@@ -19,10 +19,15 @@ export function searchWord ( input: string, allMeta: smallMeta[] ) {
 }
 
 function filterSearch ( input: string, allMeta: smallMeta[] ) {
-	const filtered = allMeta.filter(fuzzyFilter(input, { iterator: ({ word }) => word }))
-	const sorted = filtered.sort(fuzzySort(input, { iterator: ({ word }) => word }))
+	const uf = new uFuzzy({ intraMode: 1 })
+	const [ , info, searchOrder ] = uf.search(allMeta.map(({ word }) => word), input, undefined, Infinity)
 
-	return sorted
+	if (info && searchOrder) {
+		const sorted = searchOrder.map(( i ) => allMeta[info.idx[i]!])
+		return sorted
+	} else {
+		return []
+	}
 }
 
 export async function fetchAllMeta ( path: string ) {
