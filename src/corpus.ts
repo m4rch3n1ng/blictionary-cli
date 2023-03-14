@@ -371,10 +371,9 @@ class WordFilter extends TerminalLines <[ string, string ], [ WordRank ]> {
 	}
 
 	init ( word: string, stdIndex: number ): MODE {
-		const items = this.fuzzy(word)
+		const items = this.fuzzy(word, stdIndex)
 		this.items = items
 		this.len = items.length
-
 		this.stdIndex = stdIndex
 
 		this.index = 0
@@ -391,9 +390,9 @@ class WordFilter extends TerminalLines <[ string, string ], [ WordRank ]> {
 		}
 	}
 
-	private fuzzy ( word: string ) {
+	private fuzzy ( word: string, stdIndex: number ) {
 		const uf = new uFuzzy({ intraMode: 1 })
-		const idx = uf.filter(this.allItems.map(([, w ]) => w), word) || [ this.stdIndex ]
+		const idx = uf.filter(this.allItems.map(([, w ]) => w), word) || [ stdIndex ]
 		const items = idx.map(( i ) => this.allItems[i]!)
 
 		return items
