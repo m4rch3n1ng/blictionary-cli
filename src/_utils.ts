@@ -98,3 +98,28 @@ export const $7z = {
 export function escapeRegex ( w: string ) {
 	return w.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
 }
+
+export const enum STDIN {
+	UP = "%1B%5BA",
+	DOWN = "%1B%5BB",
+	LEFT = "%1B%5BD",
+	RIGHT = "%1B%5BC",
+	SPACE = "%20",
+	ESC = "%1B",
+	BACKSPACE = "%08",
+	CTRL_BACKSPACE = "%17",
+	ENTER = "%0D",
+}
+
+export const enum STDOUT {
+	HIDECURSOR = "\x1b[?25l",
+	SHOWCURSOR = "\x1b[?25h",
+
+	RESET = "\x1b[0m",
+
+	TEAL = "\x1b[36m",
+	MAGENTA = "\x1b[35m",
+	YELLOW = "\x1b[33m",
+
+	ITALIC = "\x1b[3m",
+}

@@ -1,6 +1,6 @@
 import { existsSync } from "node:fs"
 import { stdin, stdout } from "node:process"
-import { fetchAllEntries, searchWord, wordClassToString } from "./_utils.js"
+import { fetchAllEntries, searchWord, wordClassToString, STDIN } from "./_utils.js"
 
 function handleSigInt ( data: string ) {
 	if (encodeURIComponent(data) == "%03") {
@@ -9,12 +9,6 @@ function handleSigInt ( data: string ) {
 
 		process.exit()
 	}
-}
-
-const enum STDIN {
-	ENTER = "%0D",
-	BACKSPACE = "%08",
-	CTRL_BACKSPACE = "%17"
 }
 
 const amt = 10
