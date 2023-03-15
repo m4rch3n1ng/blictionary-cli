@@ -46,8 +46,12 @@ async function extractSingleTwitch ( twitchDir: string ): Promise<twitchMsg[]> {
 		const messages: twitchMsg[] = []
 		for (const line of lines) {
 			if (/^\[.{23}\] .+?: .+$/.test(line)) {
-				const [ , date, author, text ] = [ .../^\[(.{23})\] (.+?): (.+)$/.exec(line)! ] as [ string, string, string, string ]
-				messages.push({ type: "twitch", date: new Date(date), author, text, vod: vodFile.slice(0, -4) })
+				const [ , date, author, twitchMessage ] = [ .../^\[(.{23})\] (.+?): (.+)$/.exec(line)! ] as [ string, string, string, string ]
+
+				const text = filterTwitchSubs(twitchMessage)
+				if (text) {
+					messages.push({ type: "twitch", date: new Date(date), author, text, vod: vodFile.slice(0, -4) })
+				}
 			}
 		}
 
@@ -55,6 +59,15 @@ async function extractSingleTwitch ( twitchDir: string ): Promise<twitchMsg[]> {
 	}))
 
 	return allVods.flat(1)
+}
+
+function filterTwitchSubs ( text: string ): null | string {
+	if (!/subscribed/.test(text)) {
+		return text
+	}
+
+	const txt = text.replace(/^.+ subscribed (?:at Tier 1|with Prime)\.(?: They've subscribed for .+ months(?:, currently on a .+ month streak)?!)? ?/, "")
+	return txt.trim() ? txt : null
 }
 
 export async function extractIrc ( ircTxt: string[] | null ): Promise<ircMsg[]> {
