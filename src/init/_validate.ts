@@ -21,16 +21,16 @@ export async function validatePath ( i: string | undefined, i2: string | undefin
 	return path
 }
 
-function collapseInp ( i: string | undefined, i2: string | string[] | undefined | boolean ): null | string[] {
-	const all = [ i, ...( Array.isArray(i2) ? i2 : [ i2 ])]
+function collapseInput ( input1: string | undefined, input2: string | string[] | undefined | boolean ): null | string[] {
+	const all = [ input1, ...( Array.isArray(input2) ? input2 : [ input2 ])]
 	const filter = all.filter(( el ) => typeof el === "string") as string[]
 
 	return filter.length ? filter : null
 }
 
 const isZip = /\.(zip|7z)$/
-export async function validateInp ( i: string | undefined, i2: string | string[] | undefined | boolean ): Promise<string[] | null> {
-	const paths = collapseInp(i, i2)
+export async function validateInput ( input1: string | undefined, input2: string | string[] | undefined | boolean ): Promise<string[] | null> {
+	const paths = collapseInput(input1, input2)
 	if (!paths) return null
 
 	for (let path of paths) {
@@ -43,12 +43,6 @@ export async function validateInp ( i: string | undefined, i2: string | string[]
 	return Promise.all(
 		paths.map(( path ) => isZip.test(path) ? doUnzip(path) : path)
 	)
-
-	// if (canZip && isZip.test(path)) {
-	// 	return doUnzip(path)
-	// } else {
-	// 	return paths
-	// }
 }
 
 async function doUnzip ( path: string ): Promise<string> {

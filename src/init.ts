@@ -1,9 +1,9 @@
 import { mkdir, writeFile } from "node:fs/promises"
 import { join as joinPath } from "node:path"
 import { extractDiscord, extractIrc, extractTwitch } from "./init/collect.js"
+import { cleanupZip, validateInput, validatePath } from "./init/_validate.js"
 import { rankWords } from "./init/rank.js"
 import { getStats } from "./init/stats.js"
-import { cleanupZip, validateInp, validatePath } from "./init/_validate.js"
 import { $7z } from "./_utils.js"
 
 interface cliOptions {
@@ -16,9 +16,9 @@ interface cliOptions {
 }
 
 export default async function cli ( dc: string | undefined, tw: string | undefined, irc: string | undefined, out: string | undefined, { zip, d, t, i, o, u }: cliOptions ) {
-	const discordPath = await validateInp(dc, d)
-	const twitchPath = await validateInp(tw, t)
-	const ircPath = await validateInp(irc, i)
+	const discordPath = await validateInput(dc, d)
+	const twitchPath = await validateInput(tw, t)
+	const ircPath = await validateInput(irc, i)
 	const outPath = await validatePath(out, o)
 	if (!discordPath && !twitchPath && !ircPath) throw new Error("no input given")
 
@@ -26,8 +26,8 @@ export default async function cli ( dc: string | undefined, tw: string | undefin
 	await cleanupZip()
 }
 
-async function analyze ( discordZip: string[] | null, twitchDir: string[] | null, ircTxt: string[] | null, outDir: string, zip: boolean, ugly: boolean ) {
-	const [ discord, twitch, irc ] = await Promise.all([ extractDiscord(discordZip), extractTwitch(twitchDir), extractIrc(ircTxt) ])
+async function analyze ( discordPaths: string[] | null, twitchPaths: string[] | null, ircPaths: string[] | null, outDir: string, zip: boolean, ugly: boolean ) {
+	const [ discord, twitch, irc ] = await Promise.all([ extractDiscord(discordPaths), extractTwitch(twitchPaths), extractIrc(ircPaths) ])
 	const sortedMessages = [ discord, twitch, irc ].flat().sort(( msg1, msg2 ) => +new Date(msg1.date) - +new Date(msg2.date))
 
 	const messagesTxt = sortedMessages.map(( message ) => ` ${message.text.replace(/\r?\n/g, " ")} `.replace(/  +/g, " ")).join("\n")
@@ -44,10 +44,10 @@ async function analyze ( discordZip: string[] | null, twitchDir: string[] | null
 	await writeFile(joinPath(outPath, "messages.word-rank.txt"), wordsRank)
 	await writeFile(joinPath(outPath, "stats.json"), JSON.stringify(stats, null, "\t") + "\n")
 
+	console.log("created", outPath)
+
 	if (zip) {
 		await $7z.zip(`${outPath}.7z`, outPath)
+		console.log("zipped into", `${outPath}.7z`)
 	}
-
-	console.log("created", outPath)
-	if (zip) console.log("zipped into", `${outPath}.7z`)
 }
