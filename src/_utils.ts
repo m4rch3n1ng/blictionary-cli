@@ -77,10 +77,11 @@ export const enum STDIN {
 	LEFT = "%1B%5BD",
 	RIGHT = "%1B%5BC",
 	SPACE = "%20",
-	ESC = "%1B",
+	ESCAPE = "%1B",
 	BACKSPACE = "%08",
 	CTRL_BACKSPACE = "%17",
 	ENTER = "%0D",
+	CTRL_C = "%03"
 }
 
 export const enum STDOUT {

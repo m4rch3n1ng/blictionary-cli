@@ -32,15 +32,8 @@ const enum MODE {
 
 async function initStuff ( rankedWords: string[], textLines: string[] ) {
 	stdin.on("data", ( data ) => {
-		if (encodeURIComponent(data.toString()) === "%03") {
-			stdout.write("\n")
-			stdout.write(STDOUT.SHOWCURSOR)
-
-			stdout.moveCursor(0, -9)
-			stdout.cursorTo(0)
-			stdout.clearScreenDown()
-
-			process.exit()
+		if (encodeURIComponent(data.toString()) === STDIN.CTRL_C) {
+			exitProgram()
 		}
 	})
 
@@ -137,6 +130,10 @@ abstract class TerminalLines <Item, Pages> {
 				this.draw()
 				break
 			}
+			case "q": {
+				exitProgram()
+				break
+			}
 			case "0":
 			case "1":
 			case "2":
@@ -154,7 +151,6 @@ abstract class TerminalLines <Item, Pages> {
 				return this.stringData(data, pages)
 			}
 		}
-			
 	}
 
 	protected abstract stringData ( data: string, pages: Pages ): void | MODE
@@ -168,7 +164,7 @@ abstract class TerminalLines <Item, Pages> {
 
 	protected numData ( data: string ) {
 		switch (data) {
-			case STDIN.ESC: {
+			case STDIN.ESCAPE: {
 				this.isNum = false
 				this.inputNumber = ""
 				this.draw()
@@ -195,14 +191,26 @@ abstract class TerminalLines <Item, Pages> {
 				}
 				break
 			}
-			case STDIN.ENTER: {
-				if (this.inputNumber.length) {
-					const tmpIndex = this.makeInputNumber()
-					if (tmpIndex !== null) this.index = tmpIndex
-				}
+			case STDIN.DOWN: {
+				const tmpIndex = this.makeIndex()
+				if (tmpIndex !== null) this.index = tmpIndex
 
-				this.inputNumber = ""
-				this.isNum = false
+				this.add(1)
+				this.draw()
+				break
+			}
+			case STDIN.UP: {
+				const tmpIndex = this.makeIndex()
+				if (tmpIndex !== null) this.index = tmpIndex
+
+				this.sub(1)
+				this.draw()
+				break
+			}
+			case STDIN.ENTER: {
+				const tmpIndex = this.makeIndex()
+				if (tmpIndex !== null) this.index = tmpIndex
+
 				this.draw()
 				break
 			}
@@ -218,7 +226,17 @@ abstract class TerminalLines <Item, Pages> {
 		stdout.write(`${" ".repeat(stdout.columns)}\n`)
 	}
 
-	protected makeInputNumber (): number | null {
+	private makeIndex (): number | null {
+		if (!this.inputNumber.length) return null
+		const tmpNumber = this.makeInputNumber()
+
+		this.inputNumber = ""
+		this.isNum = false
+
+		return tmpNumber
+	}
+
+	private makeInputNumber (): number | null {
 		const tmpNumber = parseInt(this.inputNumber)
 
 		if (isNaN(tmpNumber)) {
@@ -346,7 +364,7 @@ class Concordancer extends TerminalLines <string, [ WordRank ]> {
 	protected stringData ( data: string, [ wordRank ]: [ WordRank ]): void | MODE {
 		switch (data) {
 			case STDIN.LEFT:
-			case STDIN.ESC: {
+			case STDIN.ESCAPE: {
 				return wordRank.init()
 			}
 		}
@@ -401,7 +419,7 @@ class WordFilter extends TerminalLines <[ string, string ], [ WordRank, WordPair
 	protected stringData ( data: string, [ wordRank, wordPairs ]: [ WordRank, WordPairs ]): void | MODE {
 		switch (data) {
 			case STDIN.RIGHT:
-			case STDIN.ESC: {
+			case STDIN.ESCAPE: {
 				return wordRank.init()
 			}
 			case STDIN.LEFT: {
@@ -461,7 +479,7 @@ class WordPairs extends TerminalLines <[ number, string ], [ WordRank, WordFilte
 
 	protected stringData ( data: string, [ wordRank, wordFilter ]: [ WordRank, WordFilter ]): void | MODE {
 		switch (data) {
-			case STDIN.ESC: {
+			case STDIN.ESCAPE: {
 				return wordRank.init()
 			}
 			case STDIN.RIGHT: {
@@ -525,4 +543,15 @@ function splitWordRank ( wordRank: string[] ): [ string, string ][] {
 	const filter = wordRank.filter(( line ) => /^(\d+) \"(.+)\"$/.test(line))
 	const split = filter.map(( line ) => [ .../^(\d+) \"(.+)\"$/.exec(line)! ].slice(1, 3) as [ string, string ])
 	return split
+}
+
+function exitProgram () {
+	stdout.write("\n")
+	stdout.write(STDOUT.SHOWCURSOR)
+
+	stdout.moveCursor(0, -9)
+	stdout.cursorTo(0)
+	stdout.clearScreenDown()
+
+	process.exit()
 }

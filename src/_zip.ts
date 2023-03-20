@@ -46,12 +46,12 @@ export async function doUnzip ( path: string ): Promise<string> {
 	toClean.push(() => rm(unzipPath, { recursive: true }))
 
 	const dirContent = await readdir(unzipPath)
-	
+
 	if (dirContent.length > 1) {
 		await cleanupZip()
 		throw new Error(`zip file ${path} has multiple files`)
 	}
-	
+
 	if (dirContent.length < 1 || !dirContent[0]) {
 		await cleanupZip()
 		throw new Error(`zip file ${path} seems to be empty`)
