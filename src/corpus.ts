@@ -1,8 +1,9 @@
 import uFuzzy from "@leeoniya/ufuzzy"
-import { italic, magenta, cyan as teal, yellow } from "kleur/colors"
+import { italic, magenta, cyan as teal, yellow, blue } from "kleur/colors"
 import { readFile } from "node:fs/promises"
 import { join as joinPath } from "node:path"
 import { stdin, stdout } from "node:process"
+import { sanitize } from "./init/rank.js"
 import { escapeRegex, STDIN, STDOUT } from "./_utils.js"
 import { cleanupZip, doUnzip } from "./_zip.js"
 
@@ -26,6 +27,7 @@ const enum MODE {
 	WORDRANK = "WORDRANK",
 	CONCORDANCER = "CONCORDANCER",
 	WORDFILTER = "WORDFILTER",
+	WORDPAIRS = "WORDPAIRS",
 }
 
 async function initStuff ( rankedWords: string[], textLines: string[] ) {
@@ -46,6 +48,7 @@ async function initStuff ( rankedWords: string[], textLines: string[] ) {
 	const wordRank = new WordRank(rankedWords)
 	const concordancer = new Concordancer(textLines)
 	const wordFilter = new WordFilter(rankedWords)
+	const wordPairs = new WordPairs(textLines)
 
 	stdin.setRawMode(true)
 	return new Promise(( _resolve ) => {
@@ -65,12 +68,16 @@ async function initStuff ( rankedWords: string[], textLines: string[] ) {
 					break
 				}
 				case MODE.WORDFILTER: {
-					const tmpMode = wordFilter.data(encodedData, [ wordRank ])
+					const tmpMode = wordFilter.data(encodedData, [ wordRank, wordPairs ])
+					if (tmpMode) mode = tmpMode
+					break
+				}
+				case MODE.WORDPAIRS: {
+					const tmpMode = wordPairs.data(encodedData, [ wordRank, wordFilter ])
 					if (tmpMode) mode = tmpMode
 					break
 				}
 			}
-
 		})
 	})
 }
@@ -80,7 +87,7 @@ abstract class TerminalLines <Item, Pages> {
 	protected index: number = 0
 	protected isNum: boolean = false
 
-	protected abstract readonly allItems: Item[]
+	protected abstract readonly allItems: unknown[]
 	protected abstract items: Item[]
 	protected abstract len: number
 
@@ -261,7 +268,7 @@ abstract class TerminalLines <Item, Pages> {
 		stdout.write(this.formatIndex(this.inputNumber))
 	}
 
-	protected abstract formatLine ( str: Item | undefined ): string
+	protected abstract formatLine ( item: Item | undefined ): string
 	protected abstract formatIndex ( index: string | number ): string
 	protected abstract formatMode: string
 }
@@ -299,8 +306,8 @@ class WordRank extends TerminalLines <[ string, string ], [ Concordancer, WordFi
 		}
 	}
 
-	protected formatLine ( str: [ string, string ] | undefined ) {
-		return str ? `${str[0]} "${str[1]}"` : ""
+	protected formatLine ( item: [ string, string ] | undefined ) {
+		return item ? `${item[0]} "${item[1]}"` : ""
 	}
 
 	protected formatIndex ( index: string | number ): string {
@@ -314,6 +321,7 @@ class Concordancer extends TerminalLines <string, [ WordRank ]> {
 	protected readonly allItems: string[]
 	protected items: string[]
 	protected len: number
+
 	private stdIndex: number = 0
 
 	constructor ( textLines: string[] ) {
@@ -350,8 +358,8 @@ class Concordancer extends TerminalLines <string, [ WordRank ]> {
 		return items
 	}
 
-	protected formatLine ( str: string | undefined ) {
-		return str ? str.slice(0, stdout.columns) : ""
+	protected formatLine ( item: string | undefined ) {
+		return item ? item.slice(0, stdout.columns) : ""
 	}
 
 	protected formatIndex ( index: string | number ): string {
@@ -361,11 +369,13 @@ class Concordancer extends TerminalLines <string, [ WordRank ]> {
 	protected formatMode = `< ${teal("word")} | ${magenta("- concordances -")} | >\n`
 }
 
-class WordFilter extends TerminalLines <[ string, string ], [ WordRank ]> {
+class WordFilter extends TerminalLines <[ string, string ], [ WordRank, WordPairs ]> {
 	protected readonly allItems: [ string, string ][]
 	protected items: [ string, string ][]
 	protected len: number
+
 	private stdIndex: number = 0
+	private word: string = ""
 
 	constructor ( rankedWords: string[] ) {
 		super()
@@ -379,18 +389,23 @@ class WordFilter extends TerminalLines <[ string, string ], [ WordRank ]> {
 		const items = this.fuzzy(word, stdIndex)
 		this.items = items
 		this.len = items.length
+
 		this.stdIndex = stdIndex
+		this.word = word
 
 		this.index = 0
 		this.draw()
 		return MODE.WORDFILTER
 	}
 
-	protected stringData ( data: string, [ wordRank ]: [ WordRank ]): void | MODE {
+	protected stringData ( data: string, [ wordRank, wordPairs ]: [ WordRank, WordPairs ]): void | MODE {
 		switch (data) {
 			case STDIN.RIGHT:
 			case STDIN.ESC: {
 				return wordRank.init()
+			}
+			case STDIN.LEFT: {
+				return wordPairs.init(this.word, this.stdIndex)
 			}
 		}
 	}
@@ -403,15 +418,115 @@ class WordFilter extends TerminalLines <[ string, string ], [ WordRank ]> {
 		return items
 	}
 
+	protected formatLine ( item: [ string, string ] | undefined ): string {
+		return item ? `${item[0]} "${item[1]}"` : ""
+	}
+
 	protected formatIndex ( index: string | number ): string {
 		return `${italic("w")} ${this.stdIndex} ${italic("f")} ${index}`
 	}
 
-	protected formatLine ( str: [ string, string ] | undefined ): string {
-		return str ? `${str[0]} "${str[1]}"` : ""
+	protected formatMode = `< ${blue("pairs")} | ${yellow("- filter -")} | ${teal("word")} >\n`
+}
+
+class WordPairs extends TerminalLines <[ number, string ], [ WordRank, WordFilter ]> {
+	protected readonly allItems: string[]
+	protected items: [ number, string ][]
+	protected len: number
+
+	private stdIndex: number = 0
+	private word: string = ""
+
+	// private maxWidth: number = 0
+
+	constructor ( textLines: string[] ) {
+		super()
+		this.allItems = textLines.map(( line ) => sanitize(line))
+
+		this.items = []
+		this.len = 0
 	}
 
-	protected formatMode = `< | ${yellow("- filter -")} | ${teal("word")} >\n`
+	init ( word: string, stdIndex: number ) {
+		const items = this.sort(word)
+		this.items = items
+		this.len = items.length
+
+		this.stdIndex = stdIndex
+		this.word = word
+
+		this.index = 0
+		this.draw()
+		return MODE.WORDPAIRS
+	}
+
+	protected stringData ( data: string, [ wordRank, wordFilter ]: [ WordRank, WordFilter ]): void | MODE {
+		switch (data) {
+			case STDIN.ESC: {
+				return wordRank.init()
+			}
+			case STDIN.RIGHT: {
+				return wordFilter.init(this.word, this.stdIndex)
+			}
+		}
+	}
+
+	private sort ( word: string ): [ number, string ][] {
+		// todo make adjustable
+		const maxLen = 2
+
+		const match = new RegExp(` ${escapeRegex(word)} `, "i")
+		const allMatch = this.allItems
+			.filter(( line ) => match.test(line))
+			.map(( line ) => line.split(/ +/g).filter(( el ) => el))
+			.filter(( line ) => line.length > maxLen)
+
+		const allPairs = allMatch.flatMap(( line ) => this.pair(word, line, maxLen))
+		// // todo make better
+
+		const pairsMap = new Map<string, number>
+		allPairs.forEach(( pair ) => pairsMap.has(pair) ? pairsMap.set(pair, pairsMap.get(pair)! + 1) : pairsMap.set(pair, 1))
+		// const pairsObj = allPairs.reduce<Record<string, number>>(( acc, curr ) => ({ ...acc, [curr]: typeof acc[curr] === "number" ? acc[curr]! + 1 : 1 }), {})
+		const sortPairs = allPairs
+			.filter(( el, i, arr ) => arr.indexOf(el) === i)
+			.map<[ number, string ]>(( pair ) => ([ pairsMap.get(pair)!, pair ]))
+			.sort(([ a ], [ b ]) => b - a)
+
+		return sortPairs
+	}
+
+	private pair ( word: string, line: string[], maxLen: number ) {
+		if (line.length === maxLen) return line
+
+		const offset = maxLen - 1
+		const wordIndex = line.indexOf(word)!
+
+		const min = Math.max(0, wordIndex - offset)
+		const max = Math.min(line.length - 1, wordIndex + offset)
+
+		const slices = []
+		for (let i = min; i < max; i++) {
+			const slice = line.slice(i, i + maxLen)
+			slices.push(slice.join(" "))
+		}
+
+		return slices
+	}
+
+
+	protected formatLine ( item: [ number, string ] | undefined ): string {
+		const item0 = this.items[0]
+		if (!item0) return ""
+
+		const max = item0[0].toString().length
+		return item ? `${item[0].toString().padStart(max, "0")} [ ${item[1]} ]` : ""
+	}
+
+	protected formatIndex ( index: string | number ): string {
+		return `${italic("w")} ${this.stdIndex} ${italic("p")} ${index}`
+	}
+
+	protected formatMode: string = `< | ${blue("- pairs -")} | ${yellow("filter")} >\n`
 }
 
 function splitWordRank ( wordRank: string[] ): [ string, string ][] {
