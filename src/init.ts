@@ -1,3 +1,4 @@
+import { italic } from "kleur/colors"
 import { mkdir, writeFile } from "node:fs/promises"
 import { join as joinPath } from "node:path"
 import { extractDiscord, extractIrc, extractTwitch } from "./init/collect.js"
@@ -44,10 +45,10 @@ async function analyze ( discordPaths: string[] | null, twitchPaths: string[] | 
 	await writeFile(joinPath(outPath, "messages.word-rank.txt"), wordsRank)
 	await writeFile(joinPath(outPath, "stats.json"), JSON.stringify(stats, null, "\t") + "\n")
 
-	console.log("created", outPath)
+	console.log(italic("created"), outPath)
 
 	if (zip) {
 		await $7z.zip(`${outPath}.7z`, outPath)
-		console.log("zipped into", `${outPath}.7z`)
+		console.log(italic("zipped into"), `${outPath}.7z`)
 	}
 }

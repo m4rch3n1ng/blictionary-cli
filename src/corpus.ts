@@ -1,10 +1,14 @@
 import uFuzzy from "@leeoniya/ufuzzy"
+import { italic, magenta, cyan as teal, yellow } from "kleur/colors"
 import { readFile } from "node:fs/promises"
 import { join as joinPath } from "node:path"
 import { stdin, stdout } from "node:process"
 import { escapeRegex, STDIN, STDOUT } from "./_utils.js"
+import { cleanupZip, doUnzip } from "./_zip.js"
 
-export default async function corpus ( initDir: string ) {
+export default async function corpus ( initPath: string ) {
+	const initDir = await doUnzip(initPath)
+
 	const wordRank = joinPath(initDir, "messages.word-rank.txt")
 	const wordRankTxt = await readFile(wordRank)
 	const wordRankLines = wordRankTxt.toString().split(/\r?\n/g)
@@ -13,6 +17,7 @@ export default async function corpus ( initDir: string ) {
 	const textTxt = await readFile(text)
 	const textLines = textTxt.toString().split(/\r?\n/g)
 
+	await cleanupZip()
 	await initStuff(wordRankLines, textLines)
 	stdin.destroy()
 }
@@ -299,10 +304,10 @@ class WordRank extends TerminalLines <[ string, string ], [ Concordancer, WordFi
 	}
 
 	protected formatIndex ( index: string | number ): string {
-		return `${STDOUT.ITALIC}w${STDOUT.RESET} ${index}`
+		return `${italic("w")} ${index}`
 	}
 
-	protected formatMode = `${STDOUT.TEAL}-- words --${STDOUT.RESET}\n`
+	protected formatMode = `< ${yellow("filter")} | ${teal("- word -")} | ${magenta("concordances")} >\n`
 }
 
 class Concordancer extends TerminalLines <string, [ WordRank ]> {
@@ -350,10 +355,10 @@ class Concordancer extends TerminalLines <string, [ WordRank ]> {
 	}
 
 	protected formatIndex ( index: string | number ): string {
-		return `${STDOUT.ITALIC}w${STDOUT.RESET} ${this.stdIndex} ${STDOUT.ITALIC}c${STDOUT.RESET} ${index}`
+		return `${italic("w")} ${this.stdIndex} ${italic("c")} ${index}`
 	}
 
-	protected formatMode = `${STDOUT.MAGENTA}-- concordances --${STDOUT.RESET}\n`
+	protected formatMode = `< ${teal("word")} | ${magenta("- concordances -")} | >\n`
 }
 
 class WordFilter extends TerminalLines <[ string, string ], [ WordRank ]> {
@@ -399,14 +404,14 @@ class WordFilter extends TerminalLines <[ string, string ], [ WordRank ]> {
 	}
 
 	protected formatIndex ( index: string | number ): string {
-		return `${STDOUT.ITALIC}w${STDOUT.RESET} ${this.stdIndex} ${STDOUT.ITALIC}f${STDOUT.RESET} ${index}`
+		return `${italic("w")} ${this.stdIndex} ${italic("f")} ${index}`
 	}
 
 	protected formatLine ( str: [ string, string ] | undefined ): string {
 		return str ? `${str[0]} "${str[1]}"` : ""
 	}
 
-	protected formatMode = `${STDOUT.YELLOW}-- filter --${STDOUT.RESET}\n`
+	protected formatMode = `< | ${yellow("- filter -")} | ${teal("word")} >\n`
 }
 
 function splitWordRank ( wordRank: string[] ): [ string, string ][] {

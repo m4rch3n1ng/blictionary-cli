@@ -86,12 +86,4 @@ export const enum STDIN {
 export const enum STDOUT {
 	HIDECURSOR = "\x1b[?25l",
 	SHOWCURSOR = "\x1b[?25h",
-
-	RESET = "\x1b[0m",
-
-	TEAL = "\x1b[36m",
-	MAGENTA = "\x1b[35m",
-	YELLOW = "\x1b[33m",
-
-	ITALIC = "\x1b[3m",
 }
