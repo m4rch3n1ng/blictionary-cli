@@ -430,18 +430,17 @@ class WordFilter extends TerminalLines <[ string, string ], [ WordRank, WordPair
 }
 
 class WordPairs extends TerminalLines <[ number, string ], [ WordRank, WordFilter ]> {
-	protected readonly allItems: string[]
+	protected readonly allItems: string[][]
 	protected items: [ number, string ][]
 	protected len: number
 
 	private stdIndex: number = 0
 	private word: string = ""
 
-	// private maxWidth: number = 0
-
 	constructor ( textLines: string[] ) {
 		super()
-		this.allItems = textLines.map(( line ) => sanitize(line))
+
+		this.allItems = textLines.map(( line ) => sanitize(line.toLowerCase())).map(( line ) => line.trim().split(/ +/g))
 
 		this.items = []
 		this.len = 0
@@ -475,18 +474,12 @@ class WordPairs extends TerminalLines <[ number, string ], [ WordRank, WordFilte
 		// todo make adjustable
 		const maxLen = 2
 
-		const match = new RegExp(` ${escapeRegex(word)} `, "i")
-		const allMatch = this.allItems
-			.filter(( line ) => match.test(line))
-			.map(( line ) => line.split(/ +/g).filter(( el ) => el))
-			.filter(( line ) => line.length > maxLen)
-
+		const allMatch = this.allItems.filter(( line ) => line.length > maxLen).filter(( line ) => line.includes(word))
 		const allPairs = allMatch.flatMap(( line ) => this.pair(word, line, maxLen))
-		// // todo make better
 
 		const pairsMap = new Map<string, number>
 		allPairs.forEach(( pair ) => pairsMap.has(pair) ? pairsMap.set(pair, pairsMap.get(pair)! + 1) : pairsMap.set(pair, 1))
-		// const pairsObj = allPairs.reduce<Record<string, number>>(( acc, curr ) => ({ ...acc, [curr]: typeof acc[curr] === "number" ? acc[curr]! + 1 : 1 }), {})
+
 		const sortPairs = allPairs
 			.filter(( el, i, arr ) => arr.indexOf(el) === i)
 			.map<[ number, string ]>(( pair ) => ([ pairsMap.get(pair)!, pair ]))
@@ -512,7 +505,6 @@ class WordPairs extends TerminalLines <[ number, string ], [ WordRank, WordFilte
 
 		return slices
 	}
-
 
 	protected formatLine ( item: [ number, string ] | undefined ): string {
 		const item0 = this.items[0]
