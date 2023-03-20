@@ -1,10 +1,10 @@
 import { mkdir, writeFile } from "node:fs/promises"
 import { join as joinPath } from "node:path"
 import { extractDiscord, extractIrc, extractTwitch } from "./init/collect.js"
-import { cleanupZip, validateInput, validatePath } from "./init/_validate.js"
+import { validateInput, validatePath } from "./init/_validate.js"
+import { $7z, cleanupZip } from "./_zip.js"
 import { rankWords } from "./init/rank.js"
 import { getStats } from "./init/stats.js"
-import { $7z } from "./_utils.js"
 
 interface cliOptions {
 	zip: boolean
