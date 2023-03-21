@@ -4,36 +4,37 @@ import { readdir, readFile } from "node:fs/promises"
 import { dirname as toDirname, join as joinPath, resolve as resolvePath } from "node:path"
 import { spawn as spawnCommand, type SpawnOptions } from "node:child_process"
 
-export interface smallMeta {
+export interface smallEntry {
 	id: string
 	word: string
 	class: string | string[],
 }
 
-export function searchWord ( input: string, allMeta: smallMeta[] ) {
+export function searchWord ( input: string, allEntries: smallEntry[] ) {
 	if (!input.length) {
 		return []
 	} else {
-		const it = filterSearch(input, allMeta)
+		const it = filterSearch(input, allEntries)
 		return it
 	}
 }
 
-function filterSearch ( input: string, allMeta: smallMeta[] ) {
+function filterSearch ( input: string, allEntries: smallEntry[] ) {
 	const uf = new uFuzzy({ intraMode: 1 })
-	const [ , info, searchOrder ] = uf.search(allMeta.map(({ word }) => word), input, undefined, Infinity)
+	const [ , info, searchOrder ] = uf.search(allEntries.map(({ word }) => word), input, undefined, Infinity)
 
 	if (info && searchOrder) {
-		const sorted = searchOrder.map(( i ) => allMeta[info.idx[i]!])
+		const sorted = searchOrder.map(( i ) => allEntries[info.idx[i]!])
 		return sorted
 	} else {
 		return []
 	}
 }
 
-export async function fetchAllMeta ( path: string ) {
+// add cache ref https://github.com/m4rch3n1ng/blictionary/pull/8
+export async function fetchAllEntries ( path: string ) {
 	const all = await readdir(path)
-	const allMeta: smallMeta[] = await Promise.all(
+	const allEntries: smallEntry[] = await Promise.all(
 		all.filter(( fileName ) => /\.json$/.test(fileName)).map(async ( fileName ) => {
 			const filePath = joinPath(path, fileName)
 			const content = await readFile(filePath)
@@ -46,7 +47,7 @@ export async function fetchAllMeta ( path: string ) {
 		})
 	)
 
-	return allMeta
+	return allEntries
 }
 
 export function wordClassToString ( wordClass: string | string[] ): string {

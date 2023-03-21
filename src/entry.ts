@@ -1,6 +1,6 @@
 import { existsSync } from "node:fs"
 import { stdin, stdout } from "node:process"
-import { fetchAllMeta, searchWord, wordClassToString } from "./_utils.js"
+import { fetchAllEntries, searchWord, wordClassToString } from "./_utils.js"
 
 function handleSigInt ( data: string ) {
 	if (encodeURIComponent(data) == "%03") {
@@ -25,7 +25,7 @@ export async function search ( dir: string ) {
 	stdout.write("$ ")
 
 	if (!existsSync(dir)) throw new Error("dir does not exist")
-	const allMeta = await fetchAllMeta(dir)
+	const allEntries = await fetchAllEntries(dir)
 
 	await new Promise<void>(( resolve ) => {
 		let str = ""
@@ -88,7 +88,7 @@ export async function search ( dir: string ) {
 			stdout.moveCursor(0, 1)
 			stdout.cursorTo(0)
 
-			const searched = searchWord(str, allMeta)
+			const searched = searchWord(str, allEntries)
 			for (let i = 0; i < amt; i ++) {
 				if (searched[i]) {
 					stdout.write("\x1b[0m")
