@@ -1,47 +1,44 @@
 {
 	"compilerOptions": {
-		/* - project options - */
-		"declaration": true,
-		"isolatedModules": true,
-		"module": "esnext",
-		"outDir": "dist",
-		"removeComments": true,
-		"rootDir": "src",
-		"target": "esnext",
-		"importsNotUsedAsValues": "error",
-
-		/* - strict checks - */
+		/* - type checking - */
+		"allowUnreachableCode": false,
+		"allowUnusedLabels": false,
 		"alwaysStrict": true,
+		"exactOptionalPropertyTypes": true,
+		"noFallthroughCasesInSwitch": true,
 		"noImplicitAny": true,
+		"noImplicitOverride": true,
+		"noImplicitReturns": true,
 		"noImplicitThis": true,
+		"noUncheckedIndexedAccess": true,
+		"noUnusedLocals": true,
+		"noUnusedParameters": true,
 		"strict": true,
 		"strictBindCallApply": true,
 		"strictFunctionTypes": true,
 		"strictNullChecks": true,
 		"strictPropertyInitialization": true,
+		"useUnknownInCatchVariables": true,
 
-		/* - linter checks - */
-		"noFallthroughCasesInSwitch": true,
-		"noImplicitReturns": true,
-		"noUncheckedIndexedAccess": true,
-		"noUnusedLocals": true,
-		"noUnusedParameters": true,
-
-		/* - module resolution - */
-		"allowSyntheticDefaultImports": true,
-		"esModuleInterop": true,
+		/* - modules - */
+		"module": "esnext",
 		"moduleResolution": "node",
+		"rootDir": "src",
 
-		/* - source maps - */
-		"sourceMap": false,
+		/* - emit - */
+		"declaration": true,
+		"outDir": "dist",
 
-		/* - experimental - */
-		"emitDecoratorMetadata": true,
-		"experimentalDecorators": true,
-
-		/* - advanced - */
+		/* - interop - */
+		"esModuleInterop": true,
 		"forceConsistentCasingInFileNames": true,
-		"skipLibCheck": true
+
+		/* - lang & env - */
+		"lib": [ "esnext" ],
+		"target": "esnext",
+
+		/* - completeness - */
+		"skipLibCheck": true,
 	},
 	"include": [ "src/**/*.ts" ]
 }
