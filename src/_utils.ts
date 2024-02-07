@@ -1,8 +1,6 @@
-import { path7za } from "7zip-bin"
 import uFuzzy from "@leeoniya/ufuzzy"
+import { join as joinPath } from "node:path"
 import { readdir, readFile } from "node:fs/promises"
-import { dirname as toDirname, join as joinPath, resolve as resolvePath } from "node:path"
-import { spawn as spawnCommand, type SpawnOptions } from "node:child_process"
 
 export interface smallEntry {
 	id: string
@@ -69,28 +67,24 @@ export function wordClassToString ( wordClass: string | string[] ): string {
 	return string
 }
 
-function spawn ( command: string, args: string[], opts?: SpawnOptions ) {
-	return new Promise(( resolve, reject ) => {
-		const child = spawnCommand(command, args, opts || {})
-
-		child.on("error", reject)
-		child.on("close", ( code ) => resolve(code))
-
-		child.stderr?.on("data", ( t ) => reject(t.toString()))
-	})
+export function escapeRegex ( w: string ) {
+	return w.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
 }
 
-export const $7z = {
-	async zip ( zipPath: string, dirPath: string ) {
-		const zipPathRes = resolvePath(zipPath)
-		const dirPathRes = resolvePath(dirPath)
+export const enum STDIN {
+	UP = "%1B%5BA",
+	DOWN = "%1B%5BB",
+	LEFT = "%1B%5BD",
+	RIGHT = "%1B%5BC",
+	SPACE = "%20",
+	ESCAPE = "%1B",
+	BACKSPACE = "%08",
+	CTRL_BACKSPACE = "%17",
+	ENTER = "%0D",
+	CTRL_C = "%03"
+}
 
-		const args = [ "a", "-t7z", "-m0=lzma2", "-mmt=on", "-md1024m", "-mfb273", "-mx=9", "-ms=on", "-aoa", "--", zipPathRes, dirPathRes ]
-		const opts: SpawnOptions = { cwd: toDirname(zipPath), stdio: "inherit" }
-		await spawn(path7za, args, opts)
-		console.log()
-	},
-	unzip ( zipPath: string, unzipPath: string ) {
-		return spawn(path7za, [ "x", zipPath, `-o${unzipPath}` ])
-	}
+export const enum STDOUT {
+	HIDECURSOR = "\x1b[?25l",
+	SHOWCURSOR = "\x1b[?25h",
 }

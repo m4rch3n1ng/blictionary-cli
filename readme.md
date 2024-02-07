@@ -72,6 +72,14 @@ $ blictionary init -d [discord1] -d [discord2]
 accepts one extra option:
 1. `-z, --zip` zip the output directory
 
+### corpus
+
+accepts one argument: the path to the init directory <initDir>
+
+```
+$ blictionary corpus <initDir>
+```
+
 ### entry search
 
 search for an entry in a directory. [learn more about entries](https://github.com/m4rch3n1ng/blictionary#entries).  
